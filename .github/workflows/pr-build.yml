@@ -3,9 +3,9 @@ name: PR Build Check
 on:
   pull_request:
     branches: [main, dev]
-  paths:
-    - "ai-cal-api/**"
-    - "ai-cal-app/**"
+    paths:
+      - "ai-cal-api/**"
+      - "ai-cal-app/**"
 
 jobs:
   detect-changes:
