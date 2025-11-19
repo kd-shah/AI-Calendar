@@ -1,0 +1,67 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    branches: [main, dev]
+  paths:
+    - "ai-cal-api/**"
+    - "ai-cal-app/**"
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      be: ${{ steps.changes.outputs.be }}
+      fe: ${{ steps.changes.outputs.fe }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            be:
+              - "ai-cal-api/**"
+            fe:
+              - "ai-cal-app/**"
+
+  build-be:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.be == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Node
+        run: npm run build
+
+  build-fe:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.fe == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Vite
+        run: npm run build
