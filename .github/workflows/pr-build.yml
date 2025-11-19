@@ -3,9 +3,9 @@ name: PR Build Check
 on:
   pull_request:
     branches: [main, dev]
-  paths:
-    - "ai-cal-api/**"
-    - "ai-cal-app/**"
+    paths:
+      - "ai-cal-api/**"
+      - "ai-cal-app/**"
 
 jobs:
   detect-changes:
@@ -42,10 +42,14 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd ai-cal-api
+          npm install
 
       - name: Build Node
-        run: npm run build
+        run: |
+          cd ai-cal-api
+          npm run build
 
   build-fe:
     runs-on: ubuntu-latest
@@ -61,7 +65,11 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd ai-cal-app
+          npm install
 
       - name: Build Vite
-        run: npm run build
+        run: |
+          cd ai-cal-app
+          npm run build
