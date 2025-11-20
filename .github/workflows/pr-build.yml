@@ -1,5 +1,9 @@
 name: PR Build Check
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   pull_request:
     branches: [main, dev]
@@ -17,6 +21,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check for changes
         uses: dorny/paths-filter@v3
@@ -35,6 +41,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -42,10 +50,14 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd ai-cal-api
+          npm install
 
       - name: Build Node
-        run: npm run build
+        run: |
+          cd ai-cal-api
+          npm run build
 
   build-fe:
     runs-on: ubuntu-latest
@@ -61,7 +73,11 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd ai-cal-app
+          npm install
 
       - name: Build Vite
-        run: npm run build
+        run: |
+          cd ai-cal-app
+          npm run build
