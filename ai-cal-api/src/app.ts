@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import http from "http";
+import router from "./routes";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(
   })
 );
 
+app.use("/api", router);
 
 // Liveness: process is up and can handle HTTP
 app.get("/healthz", (req, res) => {
