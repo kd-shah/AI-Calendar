@@ -20,6 +20,18 @@ model User {
   email                             String              @unique
   createdAt                         DateTime            @default(now())
   lastLogin                         DateTime
+  googleRefreshToken                String
 }
 
-
+model Event {
+  id                                String              @id @default(uuid())
+  userId                            String
+  googleEventId                     String              @unique
+  type                              String?
+  summary                           String
+  start                             DateTime
+  end                               DateTime
+  location                          String?
+  createdAt                         DateTime            @default(now())
+  updatedAt                         DateTime            @default(now())
+}

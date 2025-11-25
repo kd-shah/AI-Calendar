@@ -1,47 +1,44 @@
 import { authStore } from "@/store/AuthStore";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { handleLogin } = authStore();
-  const handleSignIn = async (token: string) => {
-    try {
-      console.log(token);
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/sign-in`,
-        { token: token }
-      );
-      if (response.status === 200) {
-        toast.success("Login successful");
-        handleLogin(response.data.jwtToken);
-        navigate("/");
-      }
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
-    }
-  };
+  const handleLogin = authStore.getState().handleLogin;
 
-  const handleFoogleLoginFailure = () => {
-    toast.error("Something went wrong. Please try again.");
-  };
+  const loginWithGoogle = useGoogleLogin({
+    flow: "auth-code",
+    scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
+    onSuccess: async (response) => {
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/auth/sign-in`,
+          { token: response.code }
+        );
+
+        toast.success("Login successful");
+        handleLogin(res.data.jwtToken);
+        navigate("/");
+        
+      } catch (err) {
+        toast.error("Something went wrong. Please try again.");
+      }
+    },
+    onError: () => {
+      toast.error("Google Login failed");
+    },
+  });
 
   return (
     <div className="w-screen h-screen flex items-center justify-center">
-      <GoogleLogin
-        width="300"
-        onSuccess={(res) => {
-          if (!res.credential) {
-            handleFoogleLoginFailure();
-            return;
-          }
-          handleSignIn(res.credential);
-        }}
-        onError={handleFoogleLoginFailure}
-      />
+      <button
+        className="w-[300px] bg-blue-600 text-white p-3 rounded-lg"
+        onClick={() => loginWithGoogle()}
+      >
+        Sign in with Google
+      </button>
     </div>
   );
-};
-
+}
