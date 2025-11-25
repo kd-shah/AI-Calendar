@@ -1,5 +1,7 @@
 import express from 'express';
 import authRoute from './auth.route';
+import messageRoute from './message.route';
+import calendarRoute from './calendar.route';
 
 const router = express.Router();
 
@@ -8,6 +10,14 @@ const defaultRoutes = [
   {
     path: '/auth',
     route: authRoute,
+  },
+  {
+    path: '/message',
+    route: messageRoute,
+  },
+  {
+    path: '/calendar',
+    route: calendarRoute,
   },
 ];
 
