@@ -1,6 +1,7 @@
 import { authStore } from "@/store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { LogOut } from "lucide-react";
 
 export default function Header() {
   const logout = authStore.getState().logout;
@@ -31,7 +32,7 @@ export default function Header() {
                 hover:bg-gray-100 transition-colors duration-200 shadow-md
                 active:scale-95 transform"
             >
-              Logout
+              <LogOut />
             </button>
           </div>
         </div>

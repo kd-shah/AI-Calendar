@@ -49,6 +49,11 @@ body {
   color: #fff !important;
 }
 
+
+.fc .fc-timegrid-slot {
+  height: 60px !important;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
