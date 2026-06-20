@@ -1,11 +1,15 @@
 import { OAuth2Client } from "google-auth-library";
 import { prismaService } from "./prisma.service";
 import { google } from "googleapis";
+import {
+  Intention,
+  IntentionSchema,
+} from "../types/type";
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  "postmessage"
+  "postmessage",
 );
 
 export async function getGoogleAccessToken(userId: string) {
@@ -20,11 +24,18 @@ export async function getGoogleAccessToken(userId: string) {
   return client;
 }
 
-export const createEvent = async (userIntention: any, userId: string) => {
+export const createEvent = async (userIntention: Intention, userId: string) => {
   try {
     const authClient = await getGoogleAccessToken(userId);
 
     const calendar = google.calendar({ version: "v3", auth: authClient! });
+
+    const attendees = (userIntention.entities.attendees || [])
+      .filter((a: { name: string; email: string }) => a?.email) // Google needs an email
+      .map((a: { name: string; email: string }) => ({
+        email: a.email,
+        displayName: a.name || undefined, // displayName, NOT name
+      }));
 
     const event = {
       summary: userIntention.entities.eventName,
@@ -44,13 +55,13 @@ export const createEvent = async (userIntention: any, userId: string) => {
       },
       location: userIntention.entities.location || "",
       description: userIntention.response,
+      attendees,
     };
-
-    console.log("event", event);
 
     const result = await calendar.events.insert({
       calendarId: "primary",
       requestBody: event,
+      sendUpdates: "all",
     });
 
     await prismaService.event.create({
@@ -71,7 +82,7 @@ export const createEvent = async (userIntention: any, userId: string) => {
   }
 };
 
-export const updateEvent = async (userIntention: any, userId: string) => {
+export const updateEvent = async (userIntention: Intention, userId: string) => {
   try {
     const authClient = await getGoogleAccessToken(userId);
     const calendar = google.calendar({ version: "v3", auth: authClient });
@@ -110,15 +121,15 @@ export const updateEvent = async (userIntention: any, userId: string) => {
     });
 
     // ✅ update local DB copy
-    await prismaService.event.update({
-      where: { id: match.id },
-      data: {
-        summary: updatedEvent.summary,
-        start: new Date(updatedEvent.start.dateTime),
-        end: new Date(updatedEvent.end.dateTime),
-        location: updatedEvent.location,
-      },
-    });
+    // await prismaService.event.update({
+    //   where: { id: match.id },
+    //   data: {
+    //     summary: updatedEvent.summary,
+    //     start: new Date(updatedEvent.start.dateTime),
+    //     end: new Date(updatedEvent.end.dateTime),
+    //     location: updatedEvent.location,
+    //   },
+    // });
 
     return result.data;
   } catch (e) {
@@ -127,13 +138,13 @@ export const updateEvent = async (userIntention: any, userId: string) => {
   }
 };
 
-export const deleteEvent = async (userIntention: any, userId: string) => {
+export const deleteEvent = async (userIntention: Intention, userId: string) => {
   try {
     const authClient = await getGoogleAccessToken(userId);
     const calendar = google.calendar({ version: "v3", auth: authClient });
     const eventName = userIntention.entities.eventName;
-    const date = userIntention.entities.dates?.[0];
-    const match = await findMatchingEvent(userId, eventName, date);
+    const date = userIntention.entities.start;
+    const match = await findMatchingEvent(userId, eventName, date.date);
     if (!match) {
       return {
         message: `❓ I couldn't find an event matching "${eventName}". Can you specify?`,
@@ -170,7 +181,7 @@ export const viewEvents = async (userId: string) => {
   }
 };
 
-export const searchEvents = async (userIntention: any, userId: string) => {
+export const searchEvents = async (userIntention: Intention, userId: string) => {
   try {
     const authClient = await getGoogleAccessToken(userId);
     const calendar = google.calendar({ version: "v3", auth: authClient });
@@ -206,7 +217,7 @@ export const searchEvents = async (userIntention: any, userId: string) => {
     // ✅ If event name is provided → filter further
     if (eventName) {
       items = items.filter((e) =>
-        e.summary?.toLowerCase().includes(eventName.toLowerCase())
+        e.summary?.toLowerCase().includes(eventName.toLowerCase()),
       );
     }
 
@@ -237,7 +248,7 @@ export const getAllCalendarEvents = async (userId: string) => {
 async function findMatchingEvent(
   userId: string,
   eventName: string,
-  date?: string
+  date?: string,
 ) {
   return prismaService.event.findFirst({
     where: {
