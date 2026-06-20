@@ -10,13 +10,14 @@ import Header from "@/components/Header";
 import { authStore } from "@/store/AuthStore";
 import EventDetails from "@/components/EventDetails";
 import { Send } from "lucide-react";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 export default function Dashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState();
+  const [selectedEvent, setSelectedEvent] = useState<EventImpl>();
   const [open, setOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"calendar" | "chat">("chat");
   const user = authStore.getState().user;

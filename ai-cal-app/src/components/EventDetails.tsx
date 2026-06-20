@@ -1,8 +1,18 @@
-export default function EventDetails({ event, isOpen, onClose }) {
+import { EventImpl } from "@fullcalendar/core/internal";
+
+interface EventDetailsProps {
+  event?: EventImpl | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function EventDetails(data: EventDetailsProps) {
+  const { event, isOpen, onClose } = data;
+
   if (!isOpen || !event) return null;
 
-  const start = new Date(event.start).toLocaleString();
-  const end = new Date(event.end).toLocaleString();
+  const start = event?.start ? event.start.toLocaleString() : "";
+  const end = event?.end ? event.end.toLocaleString() : "";
 
   return (
     <div
@@ -16,10 +26,7 @@ export default function EventDetails({ event, isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{event.title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             ✕
           </button>
         </div>
